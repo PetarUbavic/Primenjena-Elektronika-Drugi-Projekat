@@ -13,25 +13,12 @@ _FOSC(CSW_FSCM_OFF & XT_PLL4);//instruction takt je isti kao i kristal 10MHz
 _FWDT(WDT_OFF);
 _FGS(CODE_PROT_OFF);
 
-const unsigned int AD_Xmin = 220;
-const unsigned int AD_Xmax = 3642;
-const unsigned int AD_Ymin = 520;
-const unsigned int AD_Ymax = 3450;
+unsigned int analogni;
 
-unsigned int sirovi0,sirovi1;
-unsigned int temp0,temp1;
-
-unsigned int X, Y, x_vrednost, y_vrednost;
-
-unsigned int pir, mq3, foto, enpir, enfoto, enmq3;
 unsigned int broj1;
 
 unsigned int brojac_ms, stoperica, ms, sekund;
 unsigned int brojac_ms3, stoperica3, ms3, sekund3;
-
-int korak = pocetna/5;
-int vreme_on = pocetna;
-int vreme_off = pocetna;
 
 unsigned int x, n;
 unsigned int stanje, taster;
@@ -52,7 +39,7 @@ void initUART1(void)
 {
     //OVO JE KOPIRANO IZ Touch screen.X
     U1BRG=0x0015; //ovim odredjujemo baudrate
-    U1MODEbits.ALTIO=0; //biramo koje pinove koristimo za komunikaciju osnovne ili alternativne, koristimo alternativne
+    U1MODEbits.ALTIO=1; //biramo koje pinove koristimo za komunikaciju osnovne ili alternativne, koristimo alternativne
 
     IEC0bits.U1RXIE = 1;
     U1STA&=0xfffc;
@@ -75,17 +62,9 @@ void __attribute__((__interrupt__, no_auto_psv)) _U1RXInterrupt(void)
 } 
 
 void __attribute__((__interrupt__, no_auto_psv)) _ADCInterrupt(void) 
-{   	
-	sirovi0=ADCBUF2;
-	sirovi1=ADCBUF3;
-
-	temp0=sirovi0; //sirovi0 i sirovi1 su vrednosti sa TouchScreen-a
-	temp1=sirovi1; //cuvaju se u temp0 i temp1 kako bi se dalje njima manipulisalo
-       
-	pir=ADCBUF0;
-	mq3=ADCBUF1;
-    foto=ADCBUF4;									
-
+{   
+	analogni=ADCBUF0;
+	
     IFS0bits.ADIF = 0;
 } 
 
@@ -181,27 +160,12 @@ void WriteUART1dec2string(unsigned int data)
 	WriteUART1(data+'0');
 }
 
-void ispisiPir(unsigned int pir) // ispisuje na terminal vrednost AD konverzije sa PIR-a
+void ispisiAnalogni(unsigned int analogni) // ispisuje na terminal vrednost AD konverzije sa Analognog senzora
 {
-    RS232_putst("  PIR: ");
-    WriteUART1dec2string(pir);
+    RS232_putst("  Analogni: ");
+    WriteUART1dec2string(analogni);
 	for(broj1=0;broj1<1000;broj1++);
 }
-
-void ispisiMq3(unsigned int mq3) // ispisuje na terminal vrednost AD konverzije sa MQ3
-{
-    RS232_putst("  MQ3: ");
-	WriteUART1dec2string(mq3);
-    for(broj1=0;broj1<1000;broj1++);
-}
-
-void ispisiFoto(unsigned int foto) // ispisuje na terminal vrednost AD konverzije sa fotootoprnika
-{
-    RS232_putst("  FOTO: ");
-    WriteUART1dec2string(foto);
-	for(broj1=0;broj1<1000;broj1++);
-}
-
 
 /*
  * 
@@ -225,6 +189,9 @@ int main(int argc, char** argv) {
 	while(1)
 	{ 
         
+        ispisiAnalogni(analogni);
+        WriteUART1(13);
+        for(broj1=0; broj1<10000; broj1++);
       
         
         

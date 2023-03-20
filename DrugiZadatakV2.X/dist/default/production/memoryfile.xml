@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project>
-  <executable name="dist/default/production/ProjekatFinaleUlepsan.X.production.elf">
+  <executable name="dist/default/production/DrugiZadatakV2.X.production.elf">
     <memory name="data">
       <units>bytes</units>
       <length>2048</length>
-      <used>1102</used>
-      <free>946</free>
+      <used>46</used>
+      <free>2002</free>
     </memory>
     <memory name="program">
       <units>bytes</units>
       <length>48768</length>
-      <used>14133</used>
-      <free>34635</free>
+      <used>10692</used>
+      <free>38076</free>
     </memory>
   </executable>
 </project>
