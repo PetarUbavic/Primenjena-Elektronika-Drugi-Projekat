@@ -17,9 +17,13 @@ _FOSC(CSW_FSCM_OFF & XT_PLL4);//instruction takt je isti kao i kristal 10MHz
 _FWDT(WDT_OFF);
 _FGS(CODE_PROT_OFF);
 
-unsigned int analogni;
+int a;
+
+unsigned int analogni, echo;
 
 unsigned int broj1;
+
+unsigned int brojac;
 
 unsigned int brojac_ms, stoperica, ms, sekund;
 unsigned int brojac_ms3, stoperica3, ms3, sekund3;
@@ -51,6 +55,32 @@ void initUART1(void)
     U1STAbits.UTXEN=1;
 }
 
+/*********************************************************************
+* Ime funkcije      : WriteUART1                            		 *
+* Opis              : Funkcija upisuje podatke u registar U1TXREG,   *
+*                     za slanje podataka    						 *
+* Parameteri        : unsigned int data-podatak koji zelimo poslati  *
+* Povratna vrednost : Nema                                           *
+*********************************************************************/
+void WriteUART1(unsigned int data)
+{
+	while (U1STAbits.TRMT==0);
+    if(U1MODEbits.PDSEL == 4) //3
+        U1TXREG = data;
+    else
+        U1TXREG = data & 0xFF;
+}
+
+
+void RS232_putst(register const char*str)
+{
+    while((*str)!=0)
+    {
+        WriteUART1(*str);
+        str++;
+    }
+}
+
 void __attribute__((__interrupt__, no_auto_psv)) _U1RXInterrupt(void) 
 {
     IFS0bits.U1RXIF = 0;
@@ -68,6 +98,7 @@ void __attribute__((__interrupt__, no_auto_psv)) _U1RXInterrupt(void)
 void __attribute__((__interrupt__, no_auto_psv)) _ADCInterrupt(void) 
 {   
 	analogni=ADCBUF0;
+    echo = ADCBUF1;
 	
     IFS0bits.ADIF = 0;
 } 
@@ -105,6 +136,26 @@ void __attribute__ ((__interrupt__, no_auto_psv)) _T3Interrupt(void) // svakih 1
 	IFS0bits.T3IF = 0;    
 }
 
+
+void __attribute__ ((__interrupt__, no_auto_psv)) _INT0Interrupt(void) // svakih 1ms
+{
+	/*TMR3 = 0;
+    ms3 = 1; //fleg za milisekundu ili prekid ; potrebno ga je samo resetovati u funkciji
+
+	brojac_ms3++; //brojac milisekundi
+    stoperica3++; //brojac za funkciju Delay_ms3
+
+    if (brojac_ms3 == 1000) //sek
+        {
+            brojac_ms3 = 0;
+            sekund3 = 1; //fleg za sekundu
+		} 
+    */
+    a = 1;
+	IFS0bits.T3IF = 0;    
+}
+
+
 void Delay_ms (int vreme)//funkcija za kasnjenje u milisekundama(nije milisekundama menjali smo)
 {
     stoperica = 0;
@@ -115,31 +166,6 @@ void Delay_ms3 (int vreme)//funkcija za kasnjenje u milisekundama (nije miliseku
 {
 	stoperica3 = 0;
 	while(stoperica3 < vreme);
-}
-
-/*********************************************************************
-* Ime funkcije      : WriteUART1                            		 *
-* Opis              : Funkcija upisuje podatke u registar U1TXREG,   *
-*                     za slanje podataka    						 *
-* Parameteri        : unsigned int data-podatak koji zelimo poslati  *
-* Povratna vrednost : Nema                                           *
-*********************************************************************/
-void WriteUART1(unsigned int data)
-{
-	while (U1STAbits.TRMT==0);
-    if(U1MODEbits.PDSEL == 4) //3
-        U1TXREG = data;
-    else
-        U1TXREG = data & 0xFF;
-}
-
-void RS232_putst(register const char*str)
-{
-    while((*str)!=0)
-    {
-        WriteUART1(*str);
-        str++;
-    }
 }
 
 void delay_us (unsigned int mikrosek)  //za senzore 10us
@@ -245,6 +271,32 @@ void stani()
     PWM1(0);
     PWM2(0);
 }
+float Ocitaj()
+{
+    
+    float distanca;
+    LATBbits.LATB2=0;
+    Delay_ms3(1);
+    LATBbits.LATB2=1;
+    Delay_ms3(1);
+    LATBbits.LATB2=0;
+   // Delay_ms3(1);
+    
+    while(echo > 3800)
+    {
+        brojac++;
+         RS232_putst("Petlja1");
+         Delay_ms3(1);
+    }
+    
+   // distanca = brojac*2;
+    distanca = 0.034/(float)2 * (float)brojac*0.001;
+    brojac = 0;
+    
+    
+    return distanca;
+}
+
  //SENZORI
 int OcitajLevo1()
 {
@@ -256,11 +308,14 @@ int OcitajLevo1()
     trig_levo1 = 1;
     delay_us(1);
     trig_levo1 = 0;
+    RS232_putst("Pre petlje");
     while (echo_levo1 != 0);
     T3CONbits.TON = 1;
     TMR3 = 0;            
+    RS232_putst("Petlja1");
     while (echo_levo1 == 1 && TMR3 < 40000);
     vreme1 = TMR3 / 10 ;
+     RS232_putst("Petlja2");
     distanca1 = vreme1 * 0.034 / 2;
     delay_for();           
     T3CONbits.TON = 0; 
@@ -291,21 +346,23 @@ int main(int argc, char** argv) {
         
 	while(1)
 	{ 
-        //OcitajLevo1();
+       /* Ocitaj();
         ispisiAnalogni(analogni);
         
-        ispisiDistancu(OcitajLevo1());
+        ispisiDistancu(Ocitaj());
+        */
+        
         WriteUART1(13);
-        for(broj1=0; broj1<10000; broj1++);
+       // WriteUART1(70);
+        WriteUART1dec2string(a);
+        a = 2;
+        for(broj1=0; broj1<40000; broj1++);
         /*if(analogni>700)
            // skreniLevo();
         else
             pravo();
         */
         
-        
-        //LATDbits.LATD0=1;
-        //LATDbits.LATD1=1;
         
         
        

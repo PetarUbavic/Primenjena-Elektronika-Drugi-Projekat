@@ -14,6 +14,9 @@ void ConfigureADCPins(void)
     ADPCFGbits.PCFG7=0;//mq3
     ADPCFGbits.PCFG12=0; //foto
     */
+    
+    TRISDbits.TRISD9 = 1; // ulaz za interupt
+    TRISAbits.TRISA11 = 1; // ulaz za interupt
 	
     
 	TRISBbits.TRISB0=1;
@@ -23,12 +26,13 @@ void ConfigureADCPins(void)
     
     
     TRISFbits.TRISF0=0; //za smer motora
-    TRISFbits.TRISF1=0;
+    TRISFbits.TRISF1=0; // za smer drugog motora
 
-    TRISBbits.TRISB10=0;// za smer drugog motora
-    TRISBbits.TRISB11=0;
-    TRISBbits.TRISB2 = 0;//triger
-    TRISBbits.TRISB3 = 1;//echo
+    TRISBbits.TRISB10=0; // za smer drugog motora
+    TRISBbits.TRISB11=0; // za smer drugog motora
+    TRISBbits.TRISB2 = 0; //triger
+    TRISBbits.TRISB3 = 1; //echo
+    ADPCFGbits.PCFG3 = 0; //echo pin analogni
     
     ADPCFGbits.PCFG10=1;
     ADPCFGbits.PCFG11=1;
@@ -61,7 +65,7 @@ ADCON1bits.SAMP=1;
 
 ADCON2bits.VCFG=7;
 ADCON2bits.CSCNA=1;
-ADCON2bits.SMPI=2;
+ADCON2bits.SMPI=3;
 ADCON2bits.BUFM=0;
 ADCON2bits.ALTS=0;
 
@@ -87,9 +91,9 @@ bit 15-0 CSSL<15:0>: A/D Input Pin Scan Selection bits
 	0 = Skip ANx for input scan*/
 //ADCSSL=0b0001111111111111;
 
-    ADCSSL=0b0000000000000001;
+    ADCSSL=0b0000000000001001;
   //ADCSSL=0b0001001001111111; //koristimo 6 7 i 12 6pir 7mq3 12foto
-         //FEDCBA9876543210
+         //  FEDCBA9876543210
                   
   
 ADCON1bits.ASAM=1;

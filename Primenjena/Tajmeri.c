@@ -21,8 +21,8 @@ void Init_T2(void)
 }
 
 
-#define TMR3_period 1000/*  Fosc = 10MHz,
-					          1/Fosc = 0.1us !!!, 0.1us * 1000 = 100u  */
+#define TMR3_period 100/*  Fosc = 10MHz,
+					          1/Fosc = 0.1us !!!, 0.1us * 100 = 10u  */
 
 
 
