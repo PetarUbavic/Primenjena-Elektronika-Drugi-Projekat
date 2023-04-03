@@ -7,6 +7,8 @@
 void ConfigureADCPins(void)
 {
 	ADPCFGbits.PCFG0=0;
+    ADPCFGbits.PCFG6=1; // dioda spoljnjeg tipa
+    TRISBbits.TRISB6=0; // izlaz za diodu spoljnjeg tipa
     
 	/*ADPCFGbits.PCFG9=0;
      
@@ -15,14 +17,16 @@ void ConfigureADCPins(void)
     ADPCFGbits.PCFG12=0; //foto
     */
     
-    TRISDbits.TRISD9 = 1; // ulaz za interupt
-    TRISAbits.TRISA11 = 1; // ulaz za interupt
+    //TRISDbits.TRISD9 = 1; // ulaz za interupt
+    //TRISAbits.TRISA11 = 1; // ulaz za interupt
 	
     
 	TRISBbits.TRISB0=1;
     TRISDbits.TRISD0=0; //pwm za pogon motora 
     TRISDbits.TRISD1=0; //pwm za pogon motora
-
+    
+    TRISAbits.TRISA11=1; //ulaz za echo interupt prvi
+    TRISDbits.TRISD9=1; //ulaz za echo interupt drugi
     
     
     TRISFbits.TRISF0=0; //za smer motora
@@ -31,11 +35,11 @@ void ConfigureADCPins(void)
     TRISBbits.TRISB10=0; // za smer drugog motora
     TRISBbits.TRISB11=0; // za smer drugog motora
     TRISBbits.TRISB2 = 0; //triger
-    TRISBbits.TRISB3 = 1; //echo
-    ADPCFGbits.PCFG3 = 0; //echo pin analogni
+   // TRISBbits.TRISB3 = 1; //echo
+   // ADPCFGbits.PCFG3 = 1; //echo pin digitalni
     
-    ADPCFGbits.PCFG10=1;
-    ADPCFGbits.PCFG11=1;
+    ADPCFGbits.PCFG10=1; //
+    ADPCFGbits.PCFG11=1; //
     
     /*
 	TRISBbits.TRISB9=1;
@@ -65,7 +69,7 @@ ADCON1bits.SAMP=1;
 
 ADCON2bits.VCFG=7;
 ADCON2bits.CSCNA=1;
-ADCON2bits.SMPI=3;
+ADCON2bits.SMPI=2;
 ADCON2bits.BUFM=0;
 ADCON2bits.ALTS=0;
 
@@ -91,7 +95,7 @@ bit 15-0 CSSL<15:0>: A/D Input Pin Scan Selection bits
 	0 = Skip ANx for input scan*/
 //ADCSSL=0b0001111111111111;
 
-    ADCSSL=0b0000000000001001;
+    ADCSSL=0b0000000000000001;
   //ADCSSL=0b0001001001111111; //koristimo 6 7 i 12 6pir 7mq3 12foto
          //  FEDCBA9876543210
                   
