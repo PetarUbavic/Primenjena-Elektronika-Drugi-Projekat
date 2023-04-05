@@ -21,7 +21,7 @@ unsigned int analogni, echo;
 unsigned int flaglevo1;
 unsigned int brojanjeInt;
 
-unsigned int broj1;
+unsigned int broj1, broj2;
 
 unsigned int brojac;
 
@@ -363,6 +363,8 @@ void skreniLevo()
     //dodati ispis na uart 
 }
 
+
+
 void stani()
 {
     PWM1(0);
@@ -449,44 +451,49 @@ int main(int argc, char** argv) {
         
 	while(1)
 	{ 
-       // Ocitaj();
-      /*  pravo();
-        if (analogni > 500)
+       
+        //pravo();
+        if (analogni > 1000) // >
         {
-            stani();
-        }*/
-        
-        ispisiAnalogni(analogni);
-       // RS232_putst("----");
-        WriteUART2(40); 
-        if(rec2[0]=='D' && rec2[1]=='O' && rec2[2]=='R' && rec2[3]=='O' && rec2[4]=='S')
-        {
-            RS232_putst2("DOROS");
+            izlaz: broj1=0;
+           while(1)
+              {
+                 skreniDesno();
+                 broj1++;
+                 
+                 if(broj1>60000)
+                 {
+                     broj2++;
+                     goto izlaz;
+                 }
+              }
+           
         }
-        delay_us(10000);
-         //delay_us(10000);
-        //WriteUART2(13);
-       /*ispisiDistancu((int)OcitajLevo1());
-       if(analogni>1900)
+        
+      /*  ispisiAnalogni(analogni);
+        WriteUART2(40); */
+       
+      // ispisiDistancu((int)OcitajLevo1());
+       
+      /*  if(analogni>1900)
        {
            stani();
            delay_us(1000);
-           skreniDesno();
-           
-       }
-       else {
-           if (OcitajLevo1()<1000)
-       {
-          pravo(); 
-       }
-       else if (OcitajLevo1()>1000)
-           skreniLevo();
+           //skreniDesno();
        }*/
-       // WriteUART1(13);
-       // WriteUART1(70);
-       // WriteUART1dec2string(a);
-       // a = 2;
-        for(broj1=0; broj1<10000; broj1++);
+        
+           else {
+           if (OcitajLevo1()>1000) // <1000
+                pravo();
+           
+            else if (OcitajLevo1()<300)  //>1000
+            {
+                for(broj1 = 0; broj1<50; broj1++)
+                    skreniLevo();
+            }
+       }
+       
+       for(broj1=0; broj1<10000; broj1++);
         
         /*if(analogni>700)
            // skreniLevo();
@@ -494,10 +501,6 @@ int main(int argc, char** argv) {
             pravo();
         */
         //pravo();
-        
-        
-        
-       
         
     }//od whilea
 
