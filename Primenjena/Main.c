@@ -344,6 +344,12 @@ void PWM2(int dutyC)
 
 void pravo()
 {
+    LATFbits.LATF0=0; //za smer DESNOG motora
+    LATFbits.LATF1=1; // motori gone unazad
+        
+    LATBbits.LATB10=0; //za smer motora
+    LATBbits.LATB11=1; //motori gone unazad
+    
     PWM1(400);
     PWM2(400);
     //dodati ispis na uart 
@@ -351,7 +357,13 @@ void pravo()
 
 void skreniDesno()
 {
-    PWM1(0);
+    LATFbits.LATF0=1; //za smer motora
+    LATFbits.LATF1=0; // motori gone unazad
+                
+    LATBbits.LATB10=0; //za smer motora
+    LATBbits.LATB11=1; //motori gone unazad
+    
+    PWM1(400);
     PWM2(400);
     //dodati ispis na uart 
 }
@@ -367,6 +379,12 @@ void skreniLevo()
 
 void stani()
 {
+    LATFbits.LATF0=1; //za smer motora
+    LATFbits.LATF1=0; // motori gone unazad
+                
+    LATBbits.LATB10=0; //za smer motora
+    LATBbits.LATB11=1; //motori gone unazad
+    
     PWM1(0);
     PWM2(0);
     //dodati ispis na uart 
@@ -429,11 +447,11 @@ int main(int argc, char** argv) {
         IEC0bits.INT0IE = 1; //dozvola za interupt na INT0
         IFS0bits.INT0IF = 0; //clear external interrupt 0 flag
         
-        LATFbits.LATF0=0; //za smer motora
+        LATFbits.LATF0=0; //za smer DESNOG motora
         LATFbits.LATF1=1; // motori gone unazad
         
         LATBbits.LATB10=0; //za smer motora
-        LATBbits.LATB11=1;//motori gone unazad
+        LATBbits.LATB11=1; //motori gone unazad
         
         
         ConfigureADCPins(); //podesi pinove za AD konverziju
@@ -455,19 +473,37 @@ int main(int argc, char** argv) {
         //pravo();
         if (analogni > 1000) // >
         {
-            izlaz: broj1=0;
-           while(1)
+            broj2=0;
+            
+            for(broj1=0; broj1<50000; broj1++)
+            {    
+                broj2++;
+                skreniDesno();
+                if(broj2 > 2)
+                {
+                    broj2 = 0;
+                    goto izlaz;
+                }
+            }
+            /*pocetak: broj1=0;
+           while(1)  /////////////////////////////////////////////////////////////
               {
                  skreniDesno();
                  broj1++;
                  
-                 if(broj1>60000)
+                 if(broj2 > 2)
                  {
-                     broj2++;
+                     broj2 = 0;
                      goto izlaz;
                  }
-              }
-           
+                 
+                 if(broj1>41000)
+                 {
+                     broj2++;
+                     goto pocetak;
+                 }
+              } */
+            izlaz: broj1 = 0; ///////////////////////////////////////// SKRETANJE DESNO ZA 90 STEPENI*/
         }
         
       /*  ispisiAnalogni(analogni);
