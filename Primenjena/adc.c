@@ -34,7 +34,8 @@ void ConfigureADCPins(void)
 
     TRISBbits.TRISB10=0; // za smer drugog motora
     TRISBbits.TRISB11=0; // za smer drugog motora
-    TRISBbits.TRISB2 = 0; //triger
+    TRISBbits.TRISB2 = 0; //triger levi
+    TRISBbits.TRISB3= 0; //triger desni
    // TRISBbits.TRISB3 = 1; //echo
    // ADPCFGbits.PCFG3 = 1; //echo pin digitalni
     

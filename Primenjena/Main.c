@@ -30,6 +30,8 @@ unsigned int brojac_ms3, stoperica3, ms3, sekund3;
 
 unsigned int brojac3;
 
+static unsigned int broj = 0;
+
 unsigned int x, n;
 unsigned int stanje, taster;
 double  vremeGlobal;
@@ -260,7 +262,7 @@ void delay_for(void)  //za senzore 20ms
 }
 
 /***********************************************************************
-* Ime funkcije      : WriteUART1dec2string                     		   *
+* Ime funkcije      : WriteUART1dec2string--WriteUART2dec2string                 		   *
 * Opis              : Funkcija salje 4-cifrene brojeve (cifru po cifru)*
 * Parameteri        : unsigned int data-podatak koji zelimo poslati    *
 * Povratna vrednost : Nema                                             *
@@ -358,10 +360,10 @@ void pravo()
 void skreniDesno()
 {
     LATFbits.LATF0=1; //za smer motora
-    LATFbits.LATF1=0; // motori gone unazad
+    LATFbits.LATF1=0; // motor goni unapred
                 
     LATBbits.LATB10=0; //za smer motora
-    LATBbits.LATB11=1; //motori gone unazad
+    LATBbits.LATB11=1; //motori gone unazad0
     
     PWM1(400);
     PWM2(400);
@@ -370,8 +372,14 @@ void skreniDesno()
 
 void skreniLevo()
 {
+    LATFbits.LATF0=0; //za smer motora
+    LATFbits.LATF1=1; // motor goni unapred
+                
+    LATBbits.LATB10=1; //za smer motora
+    LATBbits.LATB11=0; //motori gone unazad0
+    
     PWM1(400);
-    PWM2(0);
+    PWM2(400);
     //dodati ispis na uart 
 }
 
@@ -407,29 +415,14 @@ double OcitajLevo1()
     trig_levo1 = 0;
     //RS232_putst("Pre petlje");
     
-    
-    
-    
-   /* while(flaglevo1 == 1 && TMR3<40000)
-        {
-            T3CONbits.TON=1;
-        vreme1=TMR3/10;
-        LATBbits.LATB6=0;
-        
-        //delay_us(1);
-        }
-       */
-    
-    
     vreme1=vremeGlobal;
     
     //vreme1 = brojac_ms3 + sekund*1000;
    WriteUART2dec2string(vreme1);
    
-    distanca1 = vreme1/10 ;
+    distanca1 = vreme1 / 10 ;
     
-    
-     //RS232_putst("izaso iz petlje");
+    //RS232_putst("izaso iz petlje");
      
     delay_for();           
     T3CONbits.TON = 0; 
@@ -469,76 +462,68 @@ int main(int argc, char** argv) {
         
 	while(1)
 	{ 
-       
-        //pravo();
-        if (analogni > 1000) // >
+        if(broj == 0)
         {
-            broj2=0;
+            analogni = 0;
+            vremeGlobal = 0;
             
-            for(broj1=0; broj1<50000; broj1++)
+            LATFbits.LATF0=0; //za smer DESNOG motora
+            LATFbits.LATF1=0; // motori gone unazad
+        
+            LATBbits.LATB10=0; //za smer motora
+            LATBbits.LATB11=0; //motori gone unazad
+            
+            broj++;
+        }
+        
+        
+        //pravo();
+        if (analogni > 1400) // >1000
+        {
+            stani();
+            broj2=0; /////////////////////////////////////////////////////////////////////
+            gore: broj2++;
+            for(broj1=0; broj1<45000; broj1++)
             {    
-                broj2++;
+                
                 skreniDesno();
-                if(broj2 > 2)
+                
+                if(broj2 > 3)
                 {
                     broj2 = 0;
                     goto izlaz;
                 }
-            }
-            /*pocetak: broj1=0;
-           while(1)  /////////////////////////////////////////////////////////////
-              {
-                 skreniDesno();
-                 broj1++;
-                 
-                 if(broj2 > 2)
-                 {
-                     broj2 = 0;
-                     goto izlaz;
-                 }
-                 
-                 if(broj1>41000)
-                 {
-                     broj2++;
-                     goto pocetak;
-                 }
-              } */
+            }goto gore;
             izlaz: broj1 = 0; ///////////////////////////////////////// SKRETANJE DESNO ZA 90 STEPENI*/
-        }
+            stani();
+        }        
         
-      /*  ispisiAnalogni(analogni);
-        WriteUART2(40); */
-       
-      // ispisiDistancu((int)OcitajLevo1());
-       
-      /*  if(analogni>1900)
-       {
-           stani();
-           delay_us(1000);
-           //skreniDesno();
-       }*/
-        
-           else {
-           if (OcitajLevo1()>1000) // <1000
+        else 
+        {    
+            if (OcitajLevo1()<1000) // <1000
                 pravo();
-           
-            else if (OcitajLevo1()<300)  //>1000
-            {
-                for(broj1 = 0; broj1<50; broj1++)
-                    skreniLevo();
-            }
-       }
-       
-       for(broj1=0; broj1<10000; broj1++);
-        
-        /*if(analogni>700)
-           // skreniLevo();
-        else
-            pravo();
-        */
-        //pravo();
-        
-    }//od whilea
 
+            else if (OcitajLevo1()>1000)  //>1000
+            {
+                stani();
+                broj2=0;
+                goreL: broj2++;
+                for(broj1=0; broj1<40000; broj1++)
+                {  
+                    
+                    skreniLevo();
+
+                    if(broj2 > 1)
+                    {
+                        broj2 = 0;
+                        goto izlazL;
+                    }
+                 }
+                 goto goreL;
+                 izlazL: broj1=0;
+                 stani();
+            }
+        }
+    }//od whilea
     return (EXIT_SUCCESS);
 }

@@ -3,8 +3,16 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena-Elektronika-Drugi-Projekat-firmware/Primenjena-Elektronika-Drugi-Projekat-firmware/Primenjena/Main.c</file>
-            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena-Elektronika-Drugi-Projekat-firmware/Primenjena-Elektronika-Drugi-Projekat-firmware/Primenjena/adc.c</file>
+            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena/Main.c</file>
+            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena/adc.c</file>
+            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena/timer3.c</file>
+            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena/Tajmeri.h</file>
+            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena/Tajmeri.c</file>
+            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena/timer2.h</file>
+            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena/timer3.h</file>
+            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena/timer2.c</file>
+            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena/nbproject/Makefile-impl.mk</file>
+            <file>file:/D:/Petar%20Ubavic%20Primenjena%20Elektronika/Primenjena/nbproject/Makefile-default.mk</file>
         </group>
     </open-files>
 </project-private>
