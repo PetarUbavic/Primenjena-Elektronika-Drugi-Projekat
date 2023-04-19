@@ -61,7 +61,7 @@ void initUART1(void)
 
 void initUART2(void)
 {
-    U2BRG=0x0040;//ovim odredjujemo baudrate
+    U2BRG=0x40;//ovim odredjujemo baudrate
 
     //U2MODEbits.ALTIO=1;//biramo koje pinove koristimo za komunikaciju osnovne ili alternativne
 
@@ -92,7 +92,7 @@ void WriteUART1(unsigned int data)
 
 void WriteUART2(unsigned int data)
 {
-	  while(!U2STAbits.TRMT);
+	while(!U2STAbits.TRMT);
 
     if(U2MODEbits.PDSEL == 3)
         U2TXREG = data;
@@ -103,18 +103,20 @@ void WriteUART2(unsigned int data)
 
 void RS232_putst(register const char*str)
 {
-    while((*str)!=0)
+    while(*str)
     {
-        WriteUART1(*str);
-        str++;
+        WriteUART1(*str++);
+        WriteUART1(10);
     }
 }
 
-void RS232_putst2(const char *s)
+void RS232_putst2(register const char *s)
 {
-    while (*s)
+    while(*s)
+    {
         WriteUART2(*s++);
         WriteUART2(10);
+    }
 }
 
 
@@ -136,16 +138,16 @@ void __attribute__((__interrupt__)) _U2RXInterrupt(void)
 {
     IFS1bits.U2RXIF = 0;
     tempRX2 = U2RXREG;
+    
     if(tempRX2 != 0)
     {  
        rec2[n] = tempRX2;
-       if(n < 5)
+       if(n < 6)
            n++;
        else n=0;
     }
 
 } 
-
 
 void __attribute__((__interrupt__, no_auto_psv)) _ADCInterrupt(void) 
 {   
@@ -352,8 +354,8 @@ void pravo()
     LATBbits.LATB10=0; //za smer motora
     LATBbits.LATB11=1; //motori gone unazad
     
-    PWM1(400);
-    PWM2(400);
+    PWM1(450);//malo samo povecao pwm da ide brze(400)
+    PWM2(450);//malo samo povecao pwm da ide brze (400)
     //dodati ispis na uart 
 }
 
@@ -462,6 +464,19 @@ int main(int argc, char** argv) {
         
 	while(1)
 	{ 
+        for(broj1=0; broj1<5; broj1++)
+        {
+            WriteUART2(rec2[broj1]);
+        }
+        
+        WriteUART2(10); //10ka je za enter kod WriteUart2
+        
+       
+         
+        
+        
+      
+        
         if(broj == 0)
         {
             analogni = 0;
@@ -476,54 +491,41 @@ int main(int argc, char** argv) {
             broj++;
         }
         
-        
-        //pravo();
-        if (analogni > 1400) // >1000
+        if(rec2[0]=='D' && rec2[1]=='O' && rec2[2]=='R' && rec2[3]=='O' && rec2[4]=='S')
         {
+        //pravo();
+        if (analogni > 1600) // >1000
+        {  
+           for(broj1=0; broj1<1000; broj1++)
+            for(broj2=0; broj2<500; broj2++);
+                pravo();
+            
             stani();
-            broj2=0; /////////////////////////////////////////////////////////////////////
-            gore: broj2++;
-            for(broj1=0; broj1<45000; broj1++)
-            {    
-                
-                skreniDesno();
-                
-                if(broj2 > 3)
-                {
-                    broj2 = 0;
-                    goto izlaz;
-                }
-            }goto gore;
-            izlaz: broj1 = 0; ///////////////////////////////////////// SKRETANJE DESNO ZA 90 STEPENI*/
+            
+            for(broj2=0; broj2 < 4; broj2++)
+                for(broj1=0; broj1<40000; broj1++)
+                    skreniLevo();
             stani();
         }        
         
         else 
         {    
-            if (OcitajLevo1()<1000) // <1000
+            if (OcitajLevo1()<2000) // <1000
                 pravo();
 
-            else if (OcitajLevo1()>1000)  //>1000
+            else if (OcitajLevo1()>2000)  //>1000 //ocitaj levo je u stvari ocitaj desno
             {
                 stani();
-                broj2=0;
-                goreL: broj2++;
-                for(broj1=0; broj1<40000; broj1++)
-                {  
-                    
-                    skreniLevo();
-
-                    if(broj2 > 1)
-                    {
-                        broj2 = 0;
-                        goto izlazL;
-                    }
-                 }
-                 goto goreL;
-                 izlazL: broj1=0;
+                
+                for(broj2=0; broj2 < 4; broj2++)
+                    for(broj1=0; broj1<45000; broj1++)
+                        skreniDesno();
+                
                  stani();
             }
         }
+        
+        }//OD DOROS IF-A
     }//od whilea
     return (EXIT_SUCCESS);
 }
