@@ -11,6 +11,9 @@
 #define trig_levo1 LATBbits.LATB2
 #define echo_levo1 PORTAbits.RA11
 
+#define trig_napred1 LATBbits.LATB3
+#define echo_napred11 PORTDbits.RD9
+
 
 
 _FOSC(CSW_FSCM_OFF & XT_PLL4);//instruction takt je isti kao i kristal 10MHz
@@ -18,8 +21,8 @@ _FWDT(WDT_OFF);
 _FGS(CODE_PROT_OFF);
 
 unsigned int analogni, echo;
-unsigned int flaglevo1;
-unsigned int brojanjeInt;
+unsigned int flaglevo1, flagnapred1;
+unsigned int brojanjeInt, brojanjeInt2;
 
 unsigned int broj1, broj2;
 
@@ -34,7 +37,7 @@ static unsigned int broj = 0;
 
 unsigned int x, n;
 unsigned int stanje, taster;
-double  vremeGlobal;
+double  vremeGlobal, vremeGlobal2;
 unsigned char tempRX, tempRX2;
 int br1 = 0;
 int rec[5];
@@ -61,7 +64,7 @@ void initUART1(void)
 
 void initUART2(void)
 {
-    U2BRG=0x40;//ovim odredjujemo baudrate
+    U2BRG=0x0015;//ovim odredjujemo baudrate
 
     //U2MODEbits.ALTIO=1;//biramo koje pinove koristimo za komunikaciju osnovne ili alternativne
 
@@ -106,16 +109,16 @@ void RS232_putst(register const char*str)
     while(*str)
     {
         WriteUART1(*str++);
-        WriteUART1(10);
+       // WriteUART1(10);
     }
 }
 
-void RS232_putst2(register const char *s)
+void RS232_putst2(const char *s)
 {
     while(*s)
     {
         WriteUART2(*s++);
-        WriteUART2(10);
+        //WriteUART2(10);
     }
 }
 
@@ -142,7 +145,7 @@ void __attribute__((__interrupt__)) _U2RXInterrupt(void)
     if(tempRX2 != 0)
     {  
        rec2[n] = tempRX2;
-       if(n < 6)
+       if(n < 5)
            n++;
        else n=0;
     }
@@ -210,12 +213,33 @@ void __attribute__ ((__interrupt__, no_auto_psv)) _INT0Interrupt(void)
         TMR3=0;
         T3CONbits.TON=0;
         INTCON2bits.INT0EP = 0;
-    }
-   
-    LATBbits.LATB6 = 1;
-    
+    }  
     IFS0bits.INT0IF = 0;
 }
+
+void __attribute__ ((__interrupt__, no_auto_psv)) _INT2Interrupt(void)
+{
+    
+    brojanjeInt2++;
+    if(brojanjeInt2 % 2 == 0)//rastuca ivica
+    {
+        flagnapred1 = 1;
+        T3CONbits.TON=1;
+        INTCON2bits.INT2EP = 1;
+    }
+    
+    else if(brojanjeInt2 % 2 == 1)//opadajuca ivica
+    {
+        vremeGlobal2=TMR3;
+        flagnapred1 = 0;
+        TMR3=0;
+        T3CONbits.TON=0;
+        INTCON2bits.INT2EP = 0;
+    }
+    IFS1bits.INT2IF = 0;
+}
+
+
 
 void __attribute__((__interrupt__)) _T2Interrupt(void) // pwm
 {
@@ -354,9 +378,10 @@ void pravo()
     LATBbits.LATB10=0; //za smer motora
     LATBbits.LATB11=1; //motori gone unazad
     
-    PWM1(450);//malo samo povecao pwm da ide brze(400)
-    PWM2(450);//malo samo povecao pwm da ide brze (400)
+    PWM1(400);
+    PWM2(400);
     //dodati ispis na uart 
+    //RS232_putst2("Idem pravo");
 }
 
 void skreniDesno()
@@ -370,6 +395,7 @@ void skreniDesno()
     PWM1(400);
     PWM2(400);
     //dodati ispis na uart 
+    //RS232_putst2("Skrecem desno");
 }
 
 void skreniLevo()
@@ -383,6 +409,7 @@ void skreniLevo()
     PWM1(400);
     PWM2(400);
     //dodati ispis na uart 
+    //RS232_putst2("Skrecem levo");
 }
 
 
@@ -398,6 +425,7 @@ void stani()
     PWM1(0);
     PWM2(0);
     //dodati ispis na uart 
+    //RS232_putst2("Stao sam");
 }
 
  //SENZORI
@@ -420,11 +448,15 @@ double OcitajLevo1()
     vreme1=vremeGlobal;
     
     //vreme1 = brojac_ms3 + sekund*1000;
-   WriteUART2dec2string(vreme1);
-   
-    distanca1 = vreme1 / 10 ;
+     //WriteUART1dec2string(vreme1);
+     //WriteUART1(13);
+     vreme1=vreme1/10;
+     distanca1 = vreme1 * 0.034 / 2;
+     //RS232_putst("OcitajLevo  ");
+     //WriteUART1dec2string(distanca1);
+     //WriteUART1(13);
     
-    //RS232_putst("izaso iz petlje");
+    
      
     delay_for();           
     T3CONbits.TON = 0; 
@@ -432,15 +464,58 @@ double OcitajLevo1()
     return distanca1;
 }
 
+double OcitajPravo1()
+{
+    
+    double vreme2=0;
+    double distanca2=0;
+    //brojac_ms3=0;
+    //sekund=0;
+    //RS232_putst("Pre svega");
+    trig_napred1 = 0;  //GENERISANJE TRIG SIGNALA
+    delay_us(1);
+    trig_napred1 = 1;
+    delay_us(1);
+    trig_napred1 = 0;
+    //RS232_putst("Pre petlje");
+    
+    vreme2=vremeGlobal2;
+    
+    //vreme1 = brojac_ms3 + sekund*1000;
+     //WriteUART1dec2string(vreme1);
+     //WriteUART1(13);
+     vreme2=vreme2/10;
+     distanca2 = vreme2 * 0.034 / 2;
+     //RS232_putst("OcitajPravo   ");
+     //WriteUART1dec2string(distanca2);
+     //WriteUART1(13);
+    
+    
+     
+    delay_for();           
+    T3CONbits.TON = 0; 
+    
+    return distanca2;
+}
+
+
 int main(int argc, char** argv) {
         
         		
         for(broj1=0;broj1<60000;broj1++); 
         
         
-        //INTCON2bits.GIE = 1; // dozvola globalnog interapta
+        //INTCON1bits.GIE = 1; // dozvola globalnog interapta
         IEC0bits.INT0IE = 1; //dozvola za interupt na INT0
         IFS0bits.INT0IF = 0; //clear external interrupt 0 flag
+        
+        IEC1bits.INT2IE = 1; //dozvola za interupt na INT0
+        IFS1bits.INT2IF = 0; //clear external interrupt 0 flag
+        
+        //IPC9bits.INT2IP=5; //interupt priority
+        INTCON2bits.INT2EP=0;//triger on rising edge
+        
+        
         
         LATFbits.LATF0=0; //za smer DESNOG motora
         LATFbits.LATF1=1; // motori gone unazad
@@ -456,6 +531,7 @@ int main(int argc, char** argv) {
 		ADCON1bits.ADON=1;//pocetak Ad konverzije 
         
         flaglevo1 = 0;
+        flagnapred1 = 0;
         
         Init_T1();
         Init_T2(); //inicijalizuj tajmer 2
@@ -464,23 +540,23 @@ int main(int argc, char** argv) {
         
 	while(1)
 	{ 
-        for(broj1=0; broj1<5; broj1++)
+      /*  for(broj1=0; broj<5; broj++)
         {
-            WriteUART2(rec2[broj1]);
+            WriteUART2(rec2[broj]);
         }
         
-        WriteUART2(10); //10ka je za enter kod WriteUart2
+        RS232_putst2("DA");
+        WriteUART2(13);*/
         
        
-         
-        
-        
-      
+       
+       
         
         if(broj == 0)
         {
             analogni = 0;
             vremeGlobal = 0;
+            vremeGlobal2=0;
             
             LATFbits.LATF0=0; //za smer DESNOG motora
             LATFbits.LATF1=0; // motori gone unazad
@@ -491,41 +567,66 @@ int main(int argc, char** argv) {
             broj++;
         }
         
-        if(rec2[0]=='D' && rec2[1]=='O' && rec2[2]=='R' && rec2[3]=='O' && rec2[4]=='S')
-        {
+         
+        
+        //RS232_putst2("Cekam POCETAK");
+        
+        //if (rec2[0]=='S' && rec2[1]=='T' && rec2[2]=='A' && rec2[3]=='R' && rec2[4]=='T')
+        //{
+        
+        //OcitajLevo1();
         //pravo();
-        if (analogni > 1600) // >1000
-        {  
-           for(broj1=0; broj1<1000; broj1++)
-            for(broj2=0; broj2<500; broj2++);
-                pravo();
-            
+        
+        //OcitajPravo1();
+        //WriteUART1(13);
+        //OcitajLevo1();
+        //WriteUART1(13);
+         
+        if (OcitajPravo1()<15 && OcitajPravo1()>5) // >1000
+        {
             stani();
+            //RS232_putst2("STAO");
+            //WriteUART2(83);
             
             for(broj2=0; broj2 < 4; broj2++)
                 for(broj1=0; broj1<40000; broj1++)
+                {
                     skreniLevo();
+                    //RS232_putst2("LEVO");
+                    //WriteUART2(68);
+                }
             stani();
+            //RS232_putst2("STAO");
+            //WriteUART2(83);
         }        
         
         else 
         {    
-            if (OcitajLevo1()<2000) // <1000
+            if (OcitajLevo1()<15 && OcitajLevo1()>5)
+            {
                 pravo();
-
-            else if (OcitajLevo1()>2000)  //>1000 //ocitaj levo je u stvari ocitaj desno
+                //RS232_putst2("PRAVO");
+                //WriteUART2(80);
+            }
+            else if (OcitajLevo1()>15)  //>1000 //ocitaj levo je u stvari ocitaj desno
             {
                 stani();
-                
+                //RS232_putst2("STAO");
+                //WriteUART2(83);
                 for(broj2=0; broj2 < 4; broj2++)
-                    for(broj1=0; broj1<45000; broj1++)
+                     for(broj1=0; broj1<45000; broj1++)
+                     {
                         skreniDesno();
+                        //RS232_putst2("DESNO");
+                        //WriteUART2(68);//L 80 P 68 D 83 S
+                     }
                 
-                 stani();
+                
+                 
             }
         }
         
-        }//OD DOROS IF-A
+       // }//OD start if-a
     }//od whilea
     return (EXIT_SUCCESS);
 }

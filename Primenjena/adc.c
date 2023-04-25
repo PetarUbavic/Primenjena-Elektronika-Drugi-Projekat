@@ -7,9 +7,11 @@
 void ConfigureADCPins(void)
 {
 	ADPCFGbits.PCFG0=0;
+    ADPCFGbits.PCFG1=0;
     ADPCFGbits.PCFG6=1; // dioda spoljnjeg tipa
     TRISBbits.TRISB6=0; // izlaz za diodu spoljnjeg tipa
     
+
 	/*ADPCFGbits.PCFG9=0;
      
     ADPCFGbits.PCFG6=0;//pir
@@ -21,7 +23,8 @@ void ConfigureADCPins(void)
     //TRISAbits.TRISA11 = 1; // ulaz za interupt
 	
     
-	TRISBbits.TRISB0=1;
+	TRISBbits.TRISB1=1;
+    
     TRISDbits.TRISD0=0; //pwm za pogon motora 
     TRISDbits.TRISD1=0; //pwm za pogon motora
     
@@ -36,7 +39,7 @@ void ConfigureADCPins(void)
     TRISBbits.TRISB11=0; // za smer drugog motora
     TRISBbits.TRISB2 = 0; //triger levi
     TRISBbits.TRISB3= 0; //triger desni
-   // TRISBbits.TRISB3 = 1; //echo
+  
    // ADPCFGbits.PCFG3 = 1; //echo pin digitalni
     
     ADPCFGbits.PCFG10=1; //
@@ -96,7 +99,7 @@ bit 15-0 CSSL<15:0>: A/D Input Pin Scan Selection bits
 	0 = Skip ANx for input scan*/
 //ADCSSL=0b0001111111111111;
 
-    ADCSSL=0b0000000000000001;
+    ADCSSL=0b0000000000000010;
   //ADCSSL=0b0001001001111111; //koristimo 6 7 i 12 6pir 7mq3 12foto
          //  FEDCBA9876543210
                   
