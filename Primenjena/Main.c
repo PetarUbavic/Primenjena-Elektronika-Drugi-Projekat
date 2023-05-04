@@ -24,7 +24,7 @@ unsigned int analogni, echo;
 unsigned int flaglevo1, flagnapred1;
 unsigned int brojanjeInt, brojanjeInt2;
 
-unsigned int broj1, broj2;
+unsigned int broj1, broj2, brojSkretanje;
 
 unsigned int brojac;
 
@@ -64,7 +64,7 @@ void initUART1(void)
 
 void initUART2(void)
 {
-    U2BRG=0x0015;//ovim odredjujemo baudrate
+    U2BRG=0x40;//ovim odredjujemo baudrate
 
     //U2MODEbits.ALTIO=1;//biramo koje pinove koristimo za komunikaciju osnovne ili alternativne
 
@@ -513,18 +513,13 @@ int main(int argc, char** argv) {
 	while(1)
 	{ 
         
-      /*  for(broj1=0; broj<5; broj++)
-        {
-            WriteUART2(rec2[broj]);
-        }
         
-        RS232_putst2("DA");
-        WriteUART2(13);*/
-        if(broj == 0)
+        if(broj == 0) //protiv zaglupljivanja
         {
             analogni = 0;
             vremeGlobal = 0;
             vremeGlobal2=0;
+            brojSkretanje = 0;
             
             LATFbits.LATF0=0; //za smer DESNOG motora
             LATFbits.LATF1=0; // motori gone unazad
@@ -537,86 +532,116 @@ int main(int argc, char** argv) {
             for(broj2 = 0; broj2 < 100; broj2++)
                 pravo();
             
-            
             broj++;
         }
+
         
-         
+       
+        if(OcitajLevo1() > 20) //skrece desno za 90 -- izgubio ivicu
+        {   
+            for(broj1 = 0; broj1 < 10; broj1++) //stani zbog promene smera motora
+                stani();
+            
+            for(broj1 = 0; broj1 < 17500; broj1++) //ide malo pravo pre skretanja
+                pravo();
+            
+            for(broj1 = 0; broj1 < 10; broj1++) //stani zbog promene smera motora
+                stani();
+            
+            for(broj2 = 0; broj2 < 3; broj2++)//skretanje desno za priblizno 90 stepeni
+            {    
+                for(broj1 = 0; broj1<45000; broj1++) //47000
+                    skreniDesno(); 
+            }
+
+            for(broj1 = 0; broj1 < 10; broj1++) //stani zbog promene smera motora
+                stani();
+            
+            for(broj2 = 0; broj2 < 4; broj2++)//ide pravo posle skretanja da bi uhvatio ivicu
+            {    
+                for(broj1 = 0; broj1<46000; broj1++) //45000
+                    if(analogni < 1700)
+                        pravo();
+                    else
+                       skreniLevo();
+            }
+            
+                        
+
+            /*if(brojSkretanje % 4 == 0)
+            {
+                brojSkretanje = 0;
+                for(broj2 = 0; broj2 < 2; broj2++)
+                    for(broj1 = 0; broj1 < 30000; broj1++)
+                        if(analogni < 1700)
+                            pravo();
+                        else
+                            skreniLevo();
+            }
+            */
+            for(broj2 = 0; broj2 < 2; broj2++)
+                    for(broj1 = 0; broj1 < 15000; broj1++);
+                    
+            if(OcitajLevo1() < 20)
+            {
+                for(broj1 = 0; broj1 < 1500; broj1++);
+                    pravo();
+            }
+            
+            brojSkretanje++;
+        }
         
-        //RS232_putst2("Cekam POCETAK");
         
-        //if (rec2[0]=='S' && rec2[1]=='T' && rec2[2]=='A' && rec2[3]=='R' && rec2[4]=='T')
-        //{
-        
-        //OcitajLevo1();
-        //pravo();
-        
-        //OcitajPravo1();
-        //WriteUART1(13);
-        //OcitajLevo1();
-        //WriteUART1(13);
-        ispisiAnalogni(analogni);
-        if (analogni>1500) // >1000
+        else if(OcitajLevo1() < 4) //skrece nazad da bude izmedju 15 i 4 , znaci malo desno
         {
-            stani();
-            //RS232_putst2("STAO");
-            //WriteUART2(83);
+            for(broj1 = 0; broj1 < 3; broj1++)
+                stani();
+            
+            for(broj1 = 0; broj1 < 5000; broj1++)
+                skreniLevo();
+            
+            for(broj1 = 0; broj1 < 3; broj1++)
+                stani();
+            
+            
+            for(broj1 = 0; broj1 < 2000; broj1++)
+                skreniDesno();
+            
+            for(broj1 = 0; broj1 < 3; broj1++)
+                stani();
+            
+            for(broj1 = 0; broj1 < 400; broj1++)
+                pravo();
+            
+        }
+        
+        
+        else if(analogni > 1700) //skrece levo za 90
+        {
+            for(broj1 = 0; broj1 < 1000; broj1++)
+                stani();
+            
             
             for(broj2=0; broj2 < 4; broj2++)
             {
-                for(broj1=0; broj1<33300; broj1++)
-                {
+                for(broj1=0; broj1<35000; broj1++) //37750
                     skreniLevo();
-                    //RS232_putst2("LEVO");
-                    //WriteUART2(68);
-                }
-                for(broj1=0; broj1<2000; broj1++)
+                
+                for(broj1=0; broj1<8000; broj1++)
                     pravo();
             }
-            stani();
-            //RS232_putst2("STAO");
-            //WriteUART2(83);
-        }        
+            
+            
+            for(broj1 = 0; broj1 < 1000; broj1++)
+                stani();
+        }
         
         else
-        {    
-            if (OcitajLevo1()<35 && OcitajLevo1()>5)
-            {
-                pravo();
-                //RS232_putst2("PRAVO");
-                //WriteUART2(80);
-            }
-            else if (OcitajLevo1()>35)  //>1000 //ocitaj levo je u stvari ocitaj desno
-            {
-                stani();
-                //RS232_putst2("STAO");
-                //WriteUART2(83);
-                
-                for(broj2 = 0; broj2 <= 3; broj2++)
-                {
-                    for(broj1 = 0; broj1<27000; broj1++) //33750
-                    {
-                       skreniDesno();
-                       //RS232_putst2("DESNO");
-                       //WriteUART2(68);//L 80 P 68 D 83 S
-                    }
-                    
-                    if(broj2 == 1)
-                    {
-                        for(broj1 = 0; broj1 < 50000; broj1++)
-                            stani();
-                        for(broj2 = 0; broj2 < 4; broj2++)
-                            for(broj1=0; broj1<45000; broj1++)
-                                if(analogni < 1500)
-                                    pravo();
-                        broj2 = 1;
-                    }
-                    //stani();
-               
-                }
-            }
+        {
+            pravo();
         }
-       // }//OD start if-a
+      
+        
     }//od whilea
     return (EXIT_SUCCESS);
 }
